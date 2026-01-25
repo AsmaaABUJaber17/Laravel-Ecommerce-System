@@ -13,13 +13,11 @@ WORKDIR /var/www/html
 COPY . .
 
 WORKDIR /var/www/html/src
-
 RUN composer install --no-dev --optimize-autoloader
 
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 storage bootstrap/cache
 
-# Apache DocumentRoot fix (Laravel in src/)
 RUN sed -i 's|/var/www/html|/var/www/html/src/public|g' \
     /etc/apache2/sites-available/000-default.conf
 
