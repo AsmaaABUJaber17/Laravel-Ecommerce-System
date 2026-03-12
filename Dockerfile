@@ -1,24 +1,20 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
-RUN apt-get update && apt-get install -y \
-    git unzip libpng-dev libjpeg-dev libfreetype6-dev \
-    libonig-dev libzip-dev zip \
-    && docker-php-ext-install pdo pdo_mysql mbstring zip
+WORKDIR /app
 
-RUN a2enmod rewrite
-
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-WORKDIR /var/www/html
 COPY . .
 
-WORKDIR /var/www/html/src
-RUN composer install --no-dev --optimize-autoloader
+WORKDIR /app/src
 
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 storage bootstrap/cache
+RUN apt-get update && apt-get install -y \
+    unzip \
+    git \
+    curl
 
-RUN sed -i 's|/var/www/html|/var/www/html/src/public|g' \
-    /etc/apache2/sites-available/000-default.conf
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-EXPOSE 80
+RUN composer install
+
+EXPOSE 8000
+
+CMD php artisan serve --host=0.0.0.0 --port=8000
